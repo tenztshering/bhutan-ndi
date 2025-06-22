@@ -3,21 +3,18 @@
  * @param params Contains QR code, deeplink, and threadId
  * @returns string HTML markup
  */
-interface WebPopupParams {
+export declare function webPopupTemplate(params: {
     qrCode: string;
     deepLink: string;
     threadId: string;
-}
-export declare function webPopupTemplate(params: WebPopupParams): string;
+}): string;
 /**
- * Generates React Native component for mobile verification
+ * Generates React Native component for Bhutan NDI mobile popup
  * @param params Contains QR code, deeplink, and threadId
- * @returns string React Native JSX code
+ * @returns string JSX
  */
-interface PopupParams {
+export declare function mobilePopupComponent(params: {
     qrCode: string;
     deepLink: string;
     threadId: string;
-}
-export declare function mobilePopupComponent(params: PopupParams): string;
-export {};
+}): string;

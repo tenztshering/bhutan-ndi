@@ -1,12 +1,13 @@
-const { BhutanNDIProofGenerator } = require('bhutan-ndi');
+const { BhutanNDIProofGenerator } = require('./dist/index');
+
+const fs = require('fs');
 require('dotenv').config();
 
-async function testNDI() {
+async function testNDIWithUI() {
   try {
-    // 1. Test Authentication (if your package handles it)
-    console.log("Testing NDI Proof Generation...");
+    console.log("Testing NDI Proof Generation with UI...");
 
-    // 2. Generate a Proof Request
+    // Generate proof request with UI templates
     const proofRequest = await BhutanNDIProofGenerator.createProofRequest(
       "Verify Identity",
       [
@@ -19,29 +20,56 @@ async function testNDI() {
           restrictions: [{ schema_name: process.env.BHUTAN_NDI_SCHEMA_ID }],
         },
       ],
+      { 
+        includeUI: true
+      }
     );
 
-    console.log("Proof Request Generated:", proofRequest)
+    console.log("Proof Request Generated:", {
+      statusCode: proofRequest.statusCode,
+      threadId: proofRequest.data.proofRequestThreadId,
+      hasWebUI: !!proofRequest.data.renderedUI?.web,
+      hasMobileUI: !!proofRequest.data.renderedUI?.mobile
+    });
 
-    // 3. Generate a QR Code (optional)
-    const qrCode = await BhutanNDIProofGenerator.generateQRCode(
-      proofRequest.proofRequestURL
-    );
-    console.log("QR Code (Base64):", qrCode.slice(0, 50) + "...");
+    if (proofRequest.data.renderedUI) {
+      // Verify the UI content
+        const uiChecks = {
+        hasExactTitle: proofRequest.data.renderedUI.web.includes('Scan with Bhutan NDI Wallet'),
+        hasExactInstructions: (
+          proofRequest.data.renderedUI.web.includes('Open Bhutan NDI Wallet on your phone') &&
+          proofRequest.data.renderedUI.web.includes('Tap the Scan button located on the menu bar and capture code')
+        ),
+        hasQRCode: proofRequest.data.renderedUI.web.includes('data:image/png;base64'),
+        hasVideoButton: proofRequest.data.renderedUI.web.includes('Watch Video Guide'),
+        hasDownloadSection: proofRequest.data.renderedUI.web.includes('Download Now!')
+      };
 
-    // 4. Simulate Webhook/NATS Subscription (if implemented)
-    if (proofRequest.proofRequestThreadId) {
-      console.log("Subscribing to verification updates...");
-      await BhutanNDIProofGenerator.subscribeToNATS(
-        proofRequest.proofRequestThreadId,
-        (update) => {
-          console.log("Received Verification Update:", update);
+      console.log("Strict UI Validation Results:", uiChecks);
+
+      // Save outputs for manual inspection
+      if (uiChecks.hasQRCode) {
+        fs.writeFileSync('ndi-web-verification.html', proofRequest.data.renderedUI.web);
+        console.log("Web UI saved to ndi-web-verification.html");
+        
+        const qrMatch = proofRequest.data.renderedUI.web.match(/src="(data:image\/[^;]+;base64[^"]+)"/);
+        if (qrMatch) {
+          fs.writeFileSync('ndi-qr-code.png', qrMatch[1].split(',')[1], 'base64');
+          console.log("QR code saved to ndi-qr-code.png");
         }
-      );
+      }
+
+      fs.writeFileSync('ndi-mobile-verification.jsx', proofRequest.data.renderedUI.mobile);
+      console.log("Mobile component saved to ndi-mobile-verification.jsx");
     }
+
   } catch (error) {
     console.error("Test Failed:", error.message);
+    if (error.response) {
+      console.error("API Response:", error.response.data);
+    }
   }
 }
 
-testNDI();
+// Run the test
+testNDIWithUI();

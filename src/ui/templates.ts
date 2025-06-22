@@ -3,82 +3,150 @@
  * @param params Contains QR code, deeplink, and threadId
  * @returns string HTML markup
  */
-interface WebPopupParams {
+export function webPopupTemplate(params: {
   qrCode: string;
   deepLink: string;
   threadId: string;
-}
-
-export function webPopupTemplate(params: WebPopupParams): string {
+}): string {
   return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Verify with Bhutan NDI</title>
   <style>
-    .ndi-popup {
-      width: 552px;
-      background: #F8F8F8;
-      border: 3px solid #5AC994;
-      border-radius: 12px;
+    :root {
+      --ndi-green: #5AC994;
+      --ndi-dark: #124143;
+      --ndi-light: #F8F8F8;
+      --ndi-gray: #A1A0A0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
       font-family: 'Inter', sans-serif;
-      padding: 30px;
+      background-color: var(--ndi-light);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .ndi-popup {
+      max-width: 90%;
+      width: 100%;
+      max-width: 552px;
+      background: #fff;
+      border: 3px solid var(--ndi-green);
+      border-radius: 16px;
+      padding: 24px 20px;
       text-align: center;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.05);
     }
+
     .ndi-title {
-      color: #5AC994;
-      font-size: 18px;
-      margin-bottom: 20px;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--ndi-green);
+      margin-bottom: 24px;
     }
+
+    .ndi-title span {
+      color: var(--ndi-dark);
+      font-weight: 700;
+    }
+
     .ndi-qr-container {
-      width: 240px;
-      height: 240px;
-      margin: 20px auto;
-      padding: 15px;
-      background: white;
-      border: 1px solid #E8EAEB;
-      position: relative;
+      margin-bottom: 24px;
     }
-    .ndi-instructions {
-      color: #A1A0A0;
+
+    .ndi-qr-container img {
+      width: 220px;
+      height: 220px;
+    }
+
+    .ndi-instructions p {
+      margin: 4px 0;
+      color: var(--ndi-gray);
       font-size: 14px;
-      margin: 20px 0;
     }
+
     .ndi-video-btn {
-      background: #5AC994;
-      color: white;
+      background-color: var(--ndi-green);
+      color: #fff;
+      padding: 10px 20px;
       border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
+      border-radius: 6px;
+      font-size: 14px;
       cursor: pointer;
-      width: 158px;
-      height: 30px;
+      margin-top: 20px;
+    }
+
+    .ndi-download {
+      margin-top: 30px;
+    }
+
+    .ndi-download p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--ndi-dark);
+    }
+
+    .ndi-stores {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .ndi-store-link {
+      font-size: 14px;
+      color: var(--ndi-green);
+      text-decoration: none;
+      border: 1px solid var(--ndi-green);
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+
+    @media (max-width: 480px) {
+      .ndi-qr-container img {
+        width: 180px;
+        height: 180px;
+      }
+
+      .ndi-popup {
+        padding: 16px;
+      }
+
+      .ndi-video-btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
   <div class="ndi-popup">
-    <h1 class="ndi-title">Scan with <span style="color:#5AC994">Bhutan NDI</span> Wallet</h1>
-    
+    <h1 class="ndi-title">Scan with <span>Bhutan NDI</span> Wallet</h1>
+
     <div class="ndi-qr-container">
-      <img src="${params.qrCode}" alt="NDI Verification QR Code" width="200">
+      <img src="${params.qrCode}" alt="NDI QR Code">
     </div>
 
     <div class="ndi-instructions">
-      <p>1. Open <strong>Bhutan NDI Wallet</strong> on your phone</p>
-      <p>2. Tap the <strong>Scan</strong> button and capture this code</p>
+      <p>1. Open Bhutan NDI Wallet on your phone</p>
+      <p>2. Tap the <strong>Scan</strong> button and capture code</p>
     </div>
 
-    <button class="ndi-video-btn" onclick="window.open('#', '_blank')">
-      Watch Video Guide
-    </button>
+    <button class="ndi-video-btn" onclick="window.open('#', '_blank')">Watch Video Guide</button>
 
-    <div style="margin-top: 20px;">
-      <a href="${params.deepLink}" style="color: #5AC994; text-decoration: none;">
-        Or open directly in Bhutan NDI Wallet
-      </a>
+    <div class="ndi-download">
+      <p>Download Now!</p>
+      <div class="ndi-stores">
+        <a href="#" class="ndi-store-link">App Store</a>
+        <a href="#" class="ndi-store-link">Google Play</a>
+      </div>
     </div>
   </div>
 </body>
@@ -86,24 +154,21 @@ export function webPopupTemplate(params: WebPopupParams): string {
   `;
 };
 
-
 /**
- * Generates React Native component for mobile verification
- * @param params Contains QR code, deeplink, and threadId 
- * @returns string React Native JSX code
+ * Generates React Native component for Bhutan NDI mobile popup
+ * @param params Contains QR code, deeplink, and threadId
+ * @returns string JSX
  */
-interface PopupParams {
+export function mobilePopupComponent(params: {
   qrCode: string;
   deepLink: string;
   threadId: string;
-}
-
-export function mobilePopupComponent(params: PopupParams): string {
+}): string {
   return `
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Linking } from 'react-native';
 
-const NdiVerificationPopup: React.FC = () => {
+const NdiVerificationPopup = () => {
   return (
     <View style={{
       padding: 20,
@@ -150,11 +215,7 @@ const NdiVerificationPopup: React.FC = () => {
           backgroundColor: '#5AC994',
           paddingVertical: 8,
           paddingHorizontal: 16,
-          borderRadius: 4,
-          width: 158,
-          height: 30,
-          justifyContent: 'center',
-          alignItems: 'center'
+          borderRadius: 4
         }}
         onPress={() => Linking.openURL('#')}
       >
@@ -175,7 +236,8 @@ const NdiVerificationPopup: React.FC = () => {
 
 export default NdiVerificationPopup;
   `;
-}
+};
+
 
 module.exports = {
   webPopupTemplate,

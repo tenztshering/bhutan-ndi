@@ -14,22 +14,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateQRCode = generateQRCode;
 const qrcode_1 = __importDefault(require("qrcode"));
-function generateQRCode(url, options) {
+const canvas_1 = require("canvas");
+function generateQRCode(url) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const format = (options === null || options === void 0 ? void 0 : options.format) || 'png';
-            const size = (options === null || options === void 0 ? void 0 : options.size) || 200;
-            if (format === 'svg') {
-                return yield qrcode_1.default.toString(url, { type: 'svg' });
-            }
-            return yield qrcode_1.default.toDataURL(url, {
-                type: 'image/png',
-                width: size,
-                margin: 2
+            // Create a canvas
+            const canvas = (0, canvas_1.createCanvas)(300, 300);
+            // Generate basic QR code
+            yield qrcode_1.default.toCanvas(canvas, url, {
+                width: 300,
+                margin: 2,
+                color: {
+                    dark: '#124143', // Bhutan NDI dark teal
+                    light: '#FFFFFF' // White background
+                }
             });
+            // Convert to base64
+            return canvas.toDataURL('image/png');
         }
-        catch (err) {
-            throw new Error('Failed to generate QR code');
+        catch (error) {
+            const errMsg = error instanceof Error ? error.message : String(error);
+            throw new Error(`QR generation failed: ${errMsg}`);
         }
     });
 }

@@ -1,26 +1,26 @@
 import QRCode from 'qrcode';
+import { createCanvas, loadImage } from 'canvas';
 
-export async function generateQRCode(
-  url: string,
-  options?: {
-    format?: 'png' | 'jpeg' | 'svg';
-    size?: number;
-  }
-): Promise<string> {
+export async function generateQRCode(url: string): Promise<string> {
   try {
-    const format = options?.format || 'png';
-    const size = options?.size || 200;
+    // Create a canvas
+    const canvas = createCanvas(300, 300);
     
-    if (format === 'svg') {
-      return await QRCode.toString(url, { type: 'svg' });
-    }
-    
-    return await QRCode.toDataURL(url, {
-      type: 'image/png',
-      width: size,
-      margin: 2
+    // Generate basic QR code
+    await QRCode.toCanvas(canvas, url, {
+      width: 300,
+      margin: 2,
+      color: {
+        dark: '#124143', // Bhutan NDI dark teal
+        light: '#FFFFFF' // White background
+      }
     });
-  } catch (err) {
-    throw new Error('Failed to generate QR code');
+
+    // Convert to base64
+    return canvas.toDataURL('image/png');
+    
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    throw new Error(`QR generation failed: ${errMsg}`);
   }
 }
